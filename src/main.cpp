@@ -1,5 +1,3 @@
-#pragma once
-
 #include "market_data.hpp"
 
 #include <iostream>

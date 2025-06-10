@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <cassert>
 
 MarketDataFeed::MarketDataFeed(const std::string& filepath) : index_(0) {
 	loadCSV(filepath);
@@ -19,10 +20,10 @@ void MarketDataFeed::loadCSV(const std::string& filepath) {
 	std::string str_value;
 	char delim = ',';
 
-	auto set_field = [&](auto& field, auto convert) {
+	const auto set_field = [&](std::stringstream& ss, auto& field, const auto convert) {
 		std::getline(ss, str_value, delim);
-		field = convert(str_value)
-	}
+		field = convert(str_value);
+	};
 
     while (std::getline(file, line)) {
         std::stringstream ss(line);
@@ -31,12 +32,15 @@ void MarketDataFeed::loadCSV(const std::string& filepath) {
 
         std::getline(ss, c.timestamp, delim);
 
-		set_field(c.open, std::stod);
-		set_field(c.high, std::stod);
-		set_field(c.low, std::stod);
-		set_field(c.close, std::stod);
+		auto stod_ = [](std::string& s) { return std::stod(s); };
+		auto stoi_ = [](std::string& s) { return std::stoi(s); };
+
+		set_field(ss, c.open, stod_);
+		set_field(ss, c.high, stod_);
+		set_field(ss, c.low, stod_);
+		set_field(ss, c.close, stod_);
 		
-		set_field(c.volume, std::stoi);
+		set_field(ss, c.volume, stoi_);
 
         data_.push_back(c);
     }
