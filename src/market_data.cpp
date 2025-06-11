@@ -32,8 +32,8 @@ void MarketDataFeed::loadCSV(const std::string& filepath) {
 
         std::getline(ss, c.timestamp, delim);
 
-		auto stod_ = [](std::string& s) { return std::stod(s); };
-		auto stoi_ = [](std::string& s) { return std::stoi(s); };
+		const auto stod_ = [](std::string& s) { return std::stod(s); };
+		const auto stoi_ = [](std::string& s) { return std::stoi(s); };
 
 		set_field(ss, c.open, stod_);
 		set_field(ss, c.high, stod_);
@@ -47,7 +47,10 @@ void MarketDataFeed::loadCSV(const std::string& filepath) {
 }
 
 bool MarketDataFeed::next(Candle& candle) {
-    if (index_ >= data_.size()) return false;
+    if (index_ >= data_.size()) {
+		return false;
+	}
+
     candle = data_[index_++];
     return true;
 }

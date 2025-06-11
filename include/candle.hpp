@@ -5,9 +5,6 @@
 
 struct Candle {
 	std::string timestamp;
-	double open;
-	double high;
-	double low;
-	double close;
+	double open, high, low, close;
 	uint32_t volume;
 };
