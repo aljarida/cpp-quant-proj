@@ -1,22 +1,22 @@
 #pragma once
 
-#include "strategy.hpp"
 #include "broker.hpp"
+#include "strategy.hpp"
 
 #include <cstdint>
-#include <vector>
 #include <memory>
+#include <vector>
 
 class MovingAverageCross : public Strategy {
-public:
+  public:
     MovingAverageCross(uint32_t short_period, uint32_t long_period, std::shared_ptr<Broker> b);
-    void on_candle(const Candle& candle) override;
+    void on_candle(const Candle &candle) override;
 
-private:
+  private:
     uint32_t short_period_;
     uint32_t long_period_;
     bool position_open_ = false;
-    
+
     std::vector<double> closes_;
 
     std::shared_ptr<Broker> broker_;

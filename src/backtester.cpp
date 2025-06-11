@@ -2,11 +2,10 @@
 
 #include <iostream>
 
-Backtester::Backtester(
-    std::shared_ptr<Broker> broker,
-    std::shared_ptr<Strategy> strategy,
-    std::shared_ptr<MarketDataFeed> feed
-) : broker_(std::move(broker)), strategy_(std::move(strategy)), feed_(std::move(feed)) {}
+Backtester::Backtester(std::shared_ptr<Broker> broker, std::shared_ptr<Strategy> strategy,
+                       std::shared_ptr<MarketDataFeed> feed)
+    : broker_(std::move(broker)), strategy_(std::move(strategy)), feed_(std::move(feed)),
+      initial_buy_in_(broker_->get_cash()) {}
 
 void Backtester::run() {
     Candle c;
@@ -18,5 +17,6 @@ void Backtester::run() {
 }
 
 double Backtester::profits() const {
-    return broker_->get_cash() + (last_close_ * broker_->get_position());
+    const double current_net_worth = broker_->get_cash() + (last_close_ * broker_->get_position());
+    return current_net_worth - initial_buy_in_;
 }

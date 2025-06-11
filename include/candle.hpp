@@ -1,11 +1,10 @@
 #pragma once
 
-#include <string>
 #include <cstdint>
+#include <string>
 
-struct Candle
-{
-	std::string timestamp;
-	double open, high, low, close;
-	uint32_t volume;
+struct Candle {
+    std::string timestamp;
+    double open, high, low, close;
+    uint32_t volume;
 };

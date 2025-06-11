@@ -1,7 +1,7 @@
 #include "backtester.hpp"
-#include "moving_average_cross.hpp"
-#include "market_data.hpp"
 #include "basic_broker.hpp"
+#include "market_data.hpp"
+#include "moving_average_cross.hpp"
 
 #include <iostream>
 
@@ -13,7 +13,6 @@ int main() {
     Backtester backtester(broker, strategy, feed);
     backtester.run();
 
-    const double profit = broker->get_cash();
     std::cout << "Total profit was: " << backtester.profits() << std::endl;
 
     return 0;
