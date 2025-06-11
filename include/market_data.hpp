@@ -14,5 +14,6 @@ public:
 private:
 	std::vector<Candle> data_;
 	size_t index_;
+
 	void loadCSV(const std::string &filepath);
 };
