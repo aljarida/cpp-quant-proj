@@ -3,7 +3,8 @@
 #include <string>
 #include <cstdint>
 
-struct Candle {
+struct Candle
+{
 	std::string timestamp;
 	double open, high, low, close;
 	uint32_t volume;

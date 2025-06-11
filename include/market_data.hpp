@@ -5,12 +5,14 @@
 #include <vector>
 #include <string>
 
-class MarketDataFeed {
+class MarketDataFeed
+{
 public:
-	explicit MarketDataFeed(const std::string& filepath);
-	bool next(Candle& candle);
+	explicit MarketDataFeed(const std::string &filepath);
+	bool next(Candle &candle);
+
 private:
 	std::vector<Candle> data_;
 	size_t index_;
-	void loadCSV(const std::string& filepath);
+	void loadCSV(const std::string &filepath);
 };
