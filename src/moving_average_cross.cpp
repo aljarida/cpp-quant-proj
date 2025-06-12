@@ -7,9 +7,9 @@
 #include <numeric>
 #include <vector>
 
-MovingAverageCross::MovingAverageCross(uint32_t short_period, uint32_t long_period,
-                                       std::shared_ptr<Broker> b)
-    : short_period_(short_period), long_period_(long_period), broker_(std::move(b)) {}
+MovingAverageCross::MovingAverageCross(std::shared_ptr<Broker> b, uint32_t short_period,
+                                       uint32_t long_period)
+    : broker_(std::move(b)), short_period_(short_period), long_period_(long_period) {}
 
 void MovingAverageCross::on_candle(const Candle &candle) {
     closes_.push_back(candle.close);

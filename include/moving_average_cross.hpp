@@ -9,12 +9,12 @@
 
 class MovingAverageCross : public Strategy {
   public:
-    MovingAverageCross(uint32_t short_period, uint32_t long_period, std::shared_ptr<Broker> b);
+    MovingAverageCross(std::shared_ptr<Broker> b, uint32_t short_period, uint32_t long_period);
     void on_candle(const Candle &candle) override;
 
   private:
-    uint32_t short_period_;
-    uint32_t long_period_;
+    uint32_t short_period_ = 0;
+    uint32_t long_period_ = 0;
     bool position_open_ = false;
 
     std::vector<double> closes_;

@@ -1,46 +1,20 @@
 import yfinance as yf
 import pandas as pd
 import os
-import sys
 
-from enum import Enum, auto
+from printer import Printer
+from enums import DownloadStatus, SAVE_DIR, NYSE_PATH, US_NASDAQ_PATH
 
 DEBUG: bool = False
 
-SAVE_DIR: str = "../data/stocks"
-NYSE_PATH: str = "../data/ticker_symbols/nyse.csv"
-US_NASDAQ_PATH: str = "../data/ticker_symbols/us_nasdaq.csv"
 
-class Printer():
-    @staticmethod
-    def above_progress(message: str):
-        sys.stdout.write("\033[1A")        # Move cursor up
-        sys.stdout.write("\033[2K")        # Clear line
-        sys.stdout.write(message + "\n")   # Print message
-        sys.stdout.flush()
 
-    @staticmethod
-    def progress_bar(current: int, total: int, width=50):
-        progress = int(width * current / total)
-        bar: str = f"[{'=' * progress}{'.' * (width - progress)}] {current}/{total} {int(current * 100 / total)}%"
-        sys.stdout.write("\0337")              # Save cursor position
-        sys.stdout.write("\033[s")             # Save again (redundancy for some terminals)
-        sys.stdout.write("\033[999B")          # Move cursor way down
-        sys.stdout.write("\r" + bar)           # Carriage return + print progress
-        sys.stdout.write("\0338")              # Restore cursor position
-        sys.stdout.flush()
-
-    @staticmethod
-    def return_carriage():
-        sys.stdout.write("\033[999B")   # Move cursor down
-        sys.stdout.write("\n")          # Print newline so future output is below
-        sys.stdout.flush()
-
-class DownloadStatus(Enum):
-    ALREADY_EXISTS = auto()
-    NO_DATA_FOUND = auto()
-    DOWNLOAD_SUCCESS = auto()
-    REQUEST_ERROR = auto()
+def tickers_with_csvs(directory: str) -> set[str]:
+    return {
+        os.path.splitext(filename)[0]
+        for filename in os.listdir(directory)
+        if filename.endswith('.csv') and os.path.isfile(os.path.join(directory, filename))
+    }
 
 def fetch_daily_stock_data(ticker_symbol: str, save_dir: str) -> DownloadStatus:
     os.makedirs(save_dir, exist_ok=True)
@@ -71,18 +45,6 @@ def fetch_daily_stock_data(ticker_symbol: str, save_dir: str) -> DownloadStatus:
 
     return DownloadStatus.DOWNLOAD_SUCCESS
 
-def print_download_stats(stats: dict[DownloadStatus, list[str]]) -> None:
-    len_success: int = len(stats[DownloadStatus.DOWNLOAD_SUCCESS])
-    len_existing: int = len(stats[DownloadStatus.ALREADY_EXISTS])
-    len_no_data: int = len(stats[DownloadStatus.NO_DATA_FOUND])
-    len_bad_request: int = len(stats[DownloadStatus.REQUEST_ERROR])
-
-    print(f"Successfully downloaded {len_success}.")
-    print(f"Skipped downloading {len_existing} already-downloaded files.")
-    print(f"Failed to find data for {len_no_data} stocks" + (":" if len_no_data else "."))
-    _ = [print(ticker) for ticker in stats[DownloadStatus.NO_DATA_FOUND]]
-    print(f"Failed to request data for {len_bad_request} stocks" + (":" if len_bad_request else "."))
-    _ = [print(ticker) for ticker in stats[DownloadStatus.REQUEST_ERROR]]
 
 def download_all_tickers(ticker_list: list[str], save_dir: str = SAVE_DIR) -> None:
     stats: dict[DownloadStatus, list[str]] = {
@@ -103,7 +65,23 @@ def download_all_tickers(ticker_list: list[str], save_dir: str = SAVE_DIR) -> No
         Printer.progress_bar(i, len(ticker_list))
     
     Printer.return_carriage()
-    print_download_stats(stats)
+    Printer.print_download_stats(stats)
+
+def sanitize_ticker(ticker: str) -> str:
+    if '^' in ticker:
+        return ticker.replace('^', '-P')
+    
+    if '/' in ticker:
+        if ticker.endswith('/U'):
+            return ticker.replace('/U', '-UN')
+        elif ticker.endswith('/W'):
+            return ticker.replace('/W', '-WT')
+        elif ticker.endswith('/R'):
+            return ticker.replace('/R', '-RT')
+        else:
+            return ticker.replace('/', '-')
+
+    return ticker
 
 def extract_tickers(*file_paths: str) -> list[str]:
     res: set[str] = set()
@@ -117,14 +95,19 @@ def extract_tickers(*file_paths: str) -> list[str]:
         if "Symbol" not in df.columns:
             raise ValueError(f"'Symbol' column not found in {path}. Columns: {list(df.columns)}")
     
-        res = res.union(set(df["Symbol"].dropna().astype(str).tolist()))
+        res = res.union(set(df["Symbol"].dropna().astype(str).apply(sanitize_ticker).tolist()))
     
     return list(res)
 
+
+
 if __name__ == "__main__":
-    tickers: list[str] = extract_tickers(NYSE_PATH, US_NASDAQ_PATH)
+    print(f"Downloading data for tickers...")
+    all_tickers: list[str] = extract_tickers(NYSE_PATH, US_NASDAQ_PATH)
     if DEBUG: # Only download a subset of all the tickers.
-        tickers = tickers[:5] + tickers[-5:]
-        print(f"Downloading data for {tickers}...")
+        tickers_to_grab = all_tickers[:10]
+    else:
+        already_downloaded: set[str] = tickers_with_csvs(SAVE_DIR)
+        tickers_to_grab = [t for t in all_tickers if t not in already_downloaded] 
     
-    download_all_tickers(tickers)
+    download_all_tickers(tickers_to_grab)

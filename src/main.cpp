@@ -7,7 +7,7 @@
 
 int main() {
     auto broker = std::make_shared<BasicBroker>(10000.0);
-    auto strategy = std::make_shared<MovingAverageCross>(50, 200, broker);
+    auto strategy = std::make_shared<MovingAverageCross>(broker, 50, 200);
     auto feed = std::make_shared<MarketDataFeed>("../data/stocks/BNGO.csv");
 
     Backtester backtester(broker, strategy, feed);
