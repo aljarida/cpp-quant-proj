@@ -4,14 +4,14 @@ from enums import DownloadStatus
 
 class Printer():
     @staticmethod
-    def above_progress(message: str):
+    def above_progress(message: str) -> None:
         sys.stdout.write("\033[1A")        # Move cursor up
         sys.stdout.write("\033[2K")        # Clear line
         sys.stdout.write(message + "\n")   # Print message
         sys.stdout.flush()
 
     @staticmethod
-    def progress_bar(current: int, total: int, width=50):
+    def progress_bar(current: int, total: int, width: int = 50) -> None:
         progress = int(width * current / total)
         bar: str = f"[{'=' * progress}{'.' * (width - progress)}] {current}/{total} {int(current * 100 / total)}%"
         sys.stdout.write("\0337")              # Save cursor position
@@ -22,7 +22,7 @@ class Printer():
         sys.stdout.flush()
 
     @staticmethod
-    def return_carriage():
+    def return_carriage() -> None:
         sys.stdout.write("\033[999B")   # Move cursor down
         sys.stdout.write("\n")          # Print newline so future output is below
         sys.stdout.flush()

@@ -8,6 +8,7 @@ class BasicBroker : public Broker {
     void buy(const Candle &c) override;
     void sell(const Candle &c) override;
     double get_cash() const override;
+    void reset() override;
     uint32_t get_position() const override;
 
   private:

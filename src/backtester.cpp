@@ -9,6 +9,8 @@ Backtester::Backtester(std::shared_ptr<Broker> broker, std::shared_ptr<Strategy>
 
 void Backtester::run() {
     Candle c;
+
+    feed_->at(0);
     while (feed_->next(c)) {
         strategy_->on_candle(c);
     }

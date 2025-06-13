@@ -8,5 +8,6 @@ class Broker {
     virtual void sell(const Candle &c) = 0;
     virtual double get_cash() const = 0;
     virtual uint32_t get_position() const = 0;
+    virtual void reset() = 0;
     virtual ~Broker() = default;
 };

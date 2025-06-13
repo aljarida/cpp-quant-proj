@@ -17,9 +17,13 @@ void MarketDataFeed::loadCSV(const std::string &filepath) {
     std::string str_value;
     char delim = ',';
 
-    const auto set_field = [&](std::stringstream &ss, auto &field, const auto convert) {
+    const auto set_field = [&](std::stringstream &ss, auto &field, const auto convert) -> bool {
         std::getline(ss, str_value, delim);
+        if (str_value == "")
+            return false;
+
         field = convert(str_value);
+        return true;
     };
 
     while (std::getline(file, line)) {
@@ -29,17 +33,21 @@ void MarketDataFeed::loadCSV(const std::string &filepath) {
         std::getline(ss, c.timestamp, delim);
 
         const auto stod_ = [](std::string &s) { return std::stod(s); };
-        const auto stoi_ = [](std::string &s) { return std::stoi(s); };
+        const auto stoll_ = [](std::string &s) { return std::stoll(s); };
 
-        set_field(ss, c.open, stod_);
-        set_field(ss, c.high, stod_);
-        set_field(ss, c.low, stod_);
-        set_field(ss, c.close, stod_);
-
-        set_field(ss, c.volume, stoi_);
-
-        data_.push_back(c);
+        if (set_field(ss, c.open, stod_) && set_field(ss, c.high, stod_) &&
+            set_field(ss, c.low, stod_) && set_field(ss, c.close, stod_) &&
+            set_field(ss, c.volume, stoll_)) {
+            data_.push_back(c);
+        } else {
+            continue;
+        }
     }
+}
+
+void MarketDataFeed::at(const size_t index) {
+    assert(0 <= index and index < data_.size());
+    index_ = index;
 }
 
 bool MarketDataFeed::next(Candle &candle) {

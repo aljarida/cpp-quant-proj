@@ -83,7 +83,7 @@ def sanitize_ticker(ticker: str) -> str:
 
     return ticker
 
-def extract_tickers(*file_paths: str) -> list[str]:
+def extract_tickers_from_csvs(*file_paths: str) -> list[str]:
     res: set[str] = set()
 
     for path in file_paths:
@@ -103,7 +103,9 @@ def extract_tickers(*file_paths: str) -> list[str]:
 
 if __name__ == "__main__":
     print(f"Downloading data for tickers...")
-    all_tickers: list[str] = extract_tickers(NYSE_PATH, US_NASDAQ_PATH)
+
+    all_tickers: list[str] = extract_tickers_from_csvs(NYSE_PATH, US_NASDAQ_PATH)
+
     if DEBUG: # Only download a subset of all the tickers.
         tickers_to_grab = all_tickers[:10]
     else:
