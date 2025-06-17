@@ -1,13 +1,16 @@
-#include "market_data.hpp"
+#include "feed.hpp"
+#include "candle.hpp"
 
 #include <cassert>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-MarketDataFeed::MarketDataFeed(const std::string &filepath) : index_(0) { loadCSV(filepath); }
+Feed::Feed(const std::string &filepath) : index_(0) {
+    loadCSV(filepath);
+}
 
-void MarketDataFeed::loadCSV(const std::string &filepath) {
+void Feed::loadCSV(const std::string &filepath) {
     std::ifstream file(filepath);
     assert(file.is_open());
 
@@ -17,7 +20,8 @@ void MarketDataFeed::loadCSV(const std::string &filepath) {
     std::string str_value;
     char delim = ',';
 
-    const auto set_field = [&](std::stringstream &ss, auto &field, const auto convert) -> bool {
+    const auto set_field = [&](std::stringstream &ss, auto &field,
+                               const auto convert) -> bool {
         std::getline(ss, str_value, delim);
         if (str_value == "")
             return false;
@@ -45,12 +49,12 @@ void MarketDataFeed::loadCSV(const std::string &filepath) {
     }
 }
 
-void MarketDataFeed::at(const size_t index) {
+void Feed::at(const size_t index) {
     assert(0 <= index and index < data_.size());
     index_ = index;
 }
 
-bool MarketDataFeed::next(Candle &candle) {
+bool Feed::next(Candle &candle) {
     if (index_ >= data_.size()) {
         return false;
     }

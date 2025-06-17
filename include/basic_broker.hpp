@@ -1,15 +1,17 @@
 #pragma once
 
-#include "broker.hpp"
+#include "candle.hpp"
 
-class BasicBroker : public Broker {
+#include <cstdint>
+
+class BasicBroker {
   public:
-    explicit BasicBroker(double cash);
-    void buy(const Candle &c) override;
-    void sell(const Candle &c) override;
-    double get_cash() const override;
-    void reset() override;
-    uint32_t get_position() const override;
+    BasicBroker(double cash);
+    void buy(const Candle &c);
+    void sell(const Candle &c);
+    double get_cash() const;
+    uint32_t get_position() const;
+    void reset();
 
   private:
     double cash_;

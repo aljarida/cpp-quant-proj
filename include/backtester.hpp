@@ -2,23 +2,38 @@
 
 #include <memory>
 
-#include "broker.hpp"
 #include "candle.hpp"
-#include "market_data.hpp"
-#include "strategy.hpp"
 
+#include "broker_cpt.hpp"
+#include "feed_cpt.hpp"
+#include "strategy_cpt.hpp"
+
+template <IsBrokerPtr BrokerPtr, IsStrategyPtr StrategyPtr, IsFeedPtr FeedPtr>
 class Backtester {
   public:
-    Backtester(std::shared_ptr<Broker> broker, std::shared_ptr<Strategy> strategy,
-               std::shared_ptr<MarketDataFeed> feed);
+    Backtester(BrokerPtr broker, StrategyPtr strategy, FeedPtr feed)
+        : broker_(std::move(broker)), strategy_(std::move(strategy)),
+          feed_(std::move(feed)), initial_buy_in_(broker_->get_cash()) {
+    }
 
-    void run();
-    double profits() const;
+    void run() {
+        Candle c;
+        feed_->at(0);
+        while (feed_->next(c)) {
+            strategy_->on_candle(c);
+        }
+        last_close_ = c.close;
+    }
+    double profits() const {
+        const double current_net_worth =
+            broker_->get_cash() + (last_close_ * broker_->get_position());
+        return current_net_worth - initial_buy_in_;
+    }
 
   private:
-    std::shared_ptr<Broker> broker_;
-    std::shared_ptr<Strategy> strategy_;
-    std::shared_ptr<MarketDataFeed> feed_;
+    BrokerPtr broker_;
+    StrategyPtr strategy_;
+    FeedPtr feed_;
 
     double last_close_;
     double initial_buy_in_;

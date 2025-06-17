@@ -1,6 +1,10 @@
 #include "basic_broker.hpp"
+#include "candle.hpp"
 
-BasicBroker::BasicBroker(double cash) : cash_(cash), position_(0) {}
+#include <cstdint>
+
+BasicBroker::BasicBroker(double cash) : cash_(cash), position_(0) {
+}
 
 void BasicBroker::buy(const Candle &c) {
     while (cash_ >= c.close) {
@@ -16,9 +20,13 @@ void BasicBroker::sell(const Candle &c) {
     }
 }
 
-double BasicBroker::get_cash() const { return cash_; }
+double BasicBroker::get_cash() const {
+    return cash_;
+}
 
-uint32_t BasicBroker::get_position() const { return position_; }
+uint32_t BasicBroker::get_position() const {
+    return position_;
+}
 
 void BasicBroker::reset() {
     cash_ = 0;

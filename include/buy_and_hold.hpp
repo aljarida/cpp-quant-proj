@@ -1,16 +1,20 @@
 #pragma once
 
-#include "broker.hpp"
-#include "strategy.hpp"
+#include "broker_cpt.hpp"
 
 #include <memory>
 #include <vector>
 
-class BuyAndHold : public Strategy {
+template <IsBrokerPtr BrokerPtr>
+class BuyAndHold {
   public:
-    BuyAndHold(std::shared_ptr<Broker> b);
-    void on_candle(const Candle &candle) override;
+    BuyAndHold(BrokerPtr bptr) : broker_(std::move(bptr)) {
+    }
+
+    void on_candle(const Candle &candle) {
+        broker_->buy(candle);
+    }
 
   private:
-    std::shared_ptr<Broker> broker_;
+    BrokerPtr broker_;
 };
