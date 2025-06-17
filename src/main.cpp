@@ -39,21 +39,16 @@ std::vector<std::string> get_stock_data_paths() {
     return res;
 }
 
-template <typename InitializeStrategy>
+template <typename StrategyFactory>
 double run_strategy_on_stock(const std::string &filepath,
-                             InitializeStrategy strategy,
+                             StrategyFactory make_strategy,
                              double initial_cash = 1000) {
 
-    auto broker = std::make_shared<BasicBroker>(initial_cash);
-    auto feed = std::make_shared<Feed>(filepath);
-    auto strategy_ = strategy(broker);
+    auto broker_ptr = std::make_shared<BasicBroker>(initial_cash);
+    auto strategy_ptr = make_strategy(broker_ptr);
+    auto feed_ptr = std::make_shared<Feed>(filepath);
 
-    using BrokerPtr = std::shared_ptr<BasicBroker>;
-    using StrategyPtr = decltype(strategy_);
-    using FeedPtr = std::shared_ptr<Feed>;
-
-    Backtester<BrokerPtr, StrategyPtr, FeedPtr> backtester(broker, strategy_,
-                                                           feed);
+    Backtester backtester(broker_ptr, strategy_ptr, feed_ptr);
     backtester.run();
 
     return backtester.profits();

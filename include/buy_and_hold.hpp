@@ -1,6 +1,6 @@
 #pragma once
 
-#include "broker_cpt.hpp"
+#include "constraints.hpp"
 
 #include <memory>
 #include <vector>
@@ -8,7 +8,7 @@
 template <IsBrokerPtr BrokerPtr>
 class BuyAndHold {
   public:
-    BuyAndHold(BrokerPtr bptr) : broker_(std::move(bptr)) {
+    BuyAndHold(BrokerPtr broker) : broker_(std::move(broker)) {
     }
 
     void on_candle(const Candle &candle) {

@@ -1,8 +1,18 @@
 #pragma once
 
-#include <concepts>
-
 #include "candle.hpp"
+
+#include <concepts>
+#include <memory>
+
+template <typename Strategy>
+concept IsStrategy = requires(Strategy s, const Candle &c) {
+    { s.on_candle(c) } -> std::same_as<void>;
+};
+
+template <typename StrategyPtr>
+concept IsStrategyPtr =
+    requires(StrategyPtr s) { requires IsStrategy<decltype(*s)>; };
 
 template <typename Broker>
 concept IsBroker = requires(Broker b, const Broker cb, const Candle &c) {
@@ -14,4 +24,5 @@ concept IsBroker = requires(Broker b, const Broker cb, const Candle &c) {
 };
 
 template <typename BrokerPtr>
-concept IsBrokerPtr = requires(BrokerPtr bptr) { requires IsBroker<decltype(*bptr)>; };
+concept IsBrokerPtr =
+    requires(BrokerPtr b) { requires IsBroker<decltype(*b)>; };
