@@ -3,4 +3,5 @@
 **/*.swp
 /data/stocks/**
 /venv/**/*
-/__pycache__/
+**/__pycache__/
+*.py[cod]
