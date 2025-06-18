@@ -23,6 +23,7 @@ class Backtester {
         }
         last_close_ = c.close;
     }
+
     double profits() const {
         const double current_net_worth =
             broker_->get_cash() + (last_close_ * broker_->get_position());

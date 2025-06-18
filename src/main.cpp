@@ -14,26 +14,25 @@
 #include <string>
 #include <vector>
 
-struct Stats {
+class Stats {
+  public:
     double standard_deviation, mean;
-    size_t total_stocks;
+    size_t total_stocks_analyzed;
 
     void print() {
-        std::cout << "std.: " << standard_deviation << std::endl;
-        std::cout << "mean.: " << mean << std::endl;
+        std::cout << "Standard deviation: " << standard_deviation << '\n';
+        std::cout << "Mean return.: " << mean << std::endl;
     }
 };
 
 std::vector<std::string> get_stock_data_paths() {
-    const std::string data_dir = "../data/stocks/";
-
     std::vector<std::string> res{};
     res.reserve(6000);
-    for (const auto &entry : std::filesystem::directory_iterator(data_dir)) {
-        if (entry.path().extension() == ".csv") {
-            std::string filepath = entry.path();
-            res.push_back(filepath);
-        }
+    for (const auto &entry : std::filesystem::directory_iterator(
+             std::filesystem::path("../data/stocks"))) {
+
+        assert(entry.path().extension() == ".csv");
+        res.emplace_back(entry.path());
     }
 
     return res;
@@ -41,8 +40,8 @@ std::vector<std::string> get_stock_data_paths() {
 
 template <typename StrategyFactory>
 double run_strategy_on_stock(const std::string &filepath,
-                             StrategyFactory make_strategy,
-                             double initial_cash = 1000) {
+                             const StrategyFactory make_strategy,
+                             const double initial_cash = 1000) {
 
     auto broker_ptr = std::make_shared<BasicBroker>(initial_cash);
     auto strategy_ptr = make_strategy(broker_ptr);
@@ -55,9 +54,10 @@ double run_strategy_on_stock(const std::string &filepath,
 }
 
 template <typename InitializeStrategy>
-Stats run_strategy_on_all_stocks(InitializeStrategy strategy,
-                                 double initial_cash = 1000) {
-    std::vector<double> profits(6000);
+Stats run_strategy_on_all_stocks(const InitializeStrategy strategy,
+                                 const double initial_cash = 1000) {
+    std::vector<double> profits{};
+    profits.reserve(6000);
 
     const std::vector<std::string> stock_paths = get_stock_data_paths();
     for (const std::string &path : stock_paths) {
@@ -78,17 +78,16 @@ Stats run_strategy_on_all_stocks(InitializeStrategy strategy,
 }
 
 int main() {
-    using BrokerPtr = std::shared_ptr<BasicBroker>;
-
-    auto init_mac = [](BrokerPtr broker) {
-        return std::make_shared<MovingAverageCross<BrokerPtr>>(broker, 50, 200);
+    auto init_mac = [](BasicBroker::Ptr broker) {
+        return std::make_shared<MovingAverageCross<BasicBroker::Ptr>>(broker,
+                                                                      50, 200);
     };
 
     Stats s1 = run_strategy_on_all_stocks(init_mac, 1000);
     s1.print();
 
-    auto init_bah = [](BrokerPtr broker) {
-        return std::make_shared<BuyAndHold<BrokerPtr>>(broker);
+    auto init_bah = [](BasicBroker::Ptr broker) {
+        return std::make_shared<BuyAndHold<BasicBroker::Ptr>>(broker);
     };
 
     Stats s2 = run_strategy_on_all_stocks(init_bah, 1000);
