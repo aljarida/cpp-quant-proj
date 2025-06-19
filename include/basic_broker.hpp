@@ -17,6 +17,9 @@ class BasicBroker {
     void reset();
 
   private:
+    double get_buy_price(const Candle &c) const;
+    double get_sell_price(const Candle &c) const;
+    double simulate_slippage(const Candle &c) const;
     double cash_;
     uint32_t position_;
 };

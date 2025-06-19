@@ -4,6 +4,8 @@
 #include "candle.hpp"
 #include "feed.hpp"
 #include "moving_average_cross.hpp"
+#include "stats.hpp"
+#include "stats_calculator.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -11,23 +13,16 @@
 #include <filesystem>
 #include <iostream>
 #include <numeric>
+#include <optional>
 #include <string>
 #include <vector>
 
-class Stats {
-  public:
-    double standard_deviation, mean;
-    size_t total_stocks_analyzed;
-
-    void print() {
-        std::cout << "Standard deviation: " << standard_deviation << '\n';
-        std::cout << "Mean return.: " << mean << std::endl;
-    }
-};
+const size_t NUM_STOCKS{6000};
 
 std::vector<std::string> get_stock_data_paths() {
     std::vector<std::string> res{};
-    res.reserve(6000);
+    res.reserve(NUM_STOCKS);
+
     for (const auto &entry : std::filesystem::directory_iterator(
              std::filesystem::path("../data/stocks"))) {
 
@@ -43,11 +38,12 @@ double run_strategy_on_stock(const std::string &filepath,
                              const StrategyFactory make_strategy,
                              const double initial_cash = 1000) {
 
-    auto broker_ptr = std::make_shared<BasicBroker>(initial_cash);
-    auto strategy_ptr = make_strategy(broker_ptr);
-    auto feed_ptr = std::make_shared<Feed>(filepath);
+    BasicBroker broker(initial_cash);
 
-    Backtester backtester(broker_ptr, strategy_ptr, feed_ptr);
+    auto strategy = make_strategy(std::move(broker));
+    Feed feed(filepath);
+
+    Backtester backtester(std::move(strategy), std::move(feed));
     backtester.run();
 
     return backtester.profits();
@@ -55,43 +51,50 @@ double run_strategy_on_stock(const std::string &filepath,
 
 template <typename InitializeStrategy>
 Stats run_strategy_on_all_stocks(const InitializeStrategy strategy,
+                                 const std::vector<std::string> &stock_paths,
                                  const double initial_cash = 1000) {
-    std::vector<double> profits{};
-    profits.reserve(6000);
+    StatsCalculator sc(NUM_STOCKS);
 
-    const std::vector<std::string> stock_paths = get_stock_data_paths();
     for (const std::string &path : stock_paths) {
         assert(path != "");
-        profits.push_back(run_strategy_on_stock(path, strategy, initial_cash));
+        sc.add_value(run_strategy_on_stock(path, strategy, initial_cash));
     }
 
-    const double total_profits =
-        std::accumulate(profits.begin(), profits.end(), 0.0);
-    const double mean = total_profits / profits.size();
-    const double rss = std::accumulate(
-        profits.begin(), profits.end(), 0.0, [mean](double acc, double val) {
-            return acc + (val - mean) * (val - mean);
-        });
-    const double standard_deviation = std::sqrt(rss / profits.size());
+    Stats s = sc.compute_all_stats();
 
-    return Stats{standard_deviation, mean, profits.size()};
+    return s;
 }
 
 int main() {
-    auto init_mac = [](BasicBroker::Ptr broker) {
-        return std::make_shared<MovingAverageCross<BasicBroker::Ptr>>(broker,
-                                                                      50, 200);
+    const auto &stock_paths = get_stock_data_paths();
+
+    auto init_mac = [](BasicBroker &&broker) {
+        return MovingAverageCross(std::move(broker), 50, 200);
     };
 
-    Stats s1 = run_strategy_on_all_stocks(init_mac, 1000);
-    s1.print();
+    std::cout << "Testing Moving Average Cross" << std::endl;
+    Stats s1 = run_strategy_on_all_stocks(init_mac, stock_paths, 1000);
+    std::cout << "Mean: " << s1.mean << std::endl;
+    std::cout << "Std.: " << s1.standard_deviation << std::endl;
+    std::cout << "Min.: " << s1.minimum << std::endl;
+    std::cout << "25 p.: " << s1.twenty_fifth << std::endl;
+    std::cout << "Med.: " << s1.median << std::endl;
+    std::cout << "75 p.: " << s1.seventy_fifth << std::endl;
+    std::cout << "Max.: " << s1.maximum << std::endl;
 
-    auto init_bah = [](BasicBroker::Ptr broker) {
-        return std::make_shared<BuyAndHold<BasicBroker::Ptr>>(broker);
+    auto init_bah = [](BasicBroker &&broker) {
+        return BuyAndHold(std::move(broker));
     };
 
-    Stats s2 = run_strategy_on_all_stocks(init_bah, 1000);
-    s2.print();
+    std::cout << "Testing Buy And Hold" << std::endl;
+    Stats s2 = run_strategy_on_all_stocks(init_bah, stock_paths, 1000);
+    std::cout << "Mean: " << s2.mean << std::endl;
+    std::cout << "Std.: " << s2.standard_deviation << std::endl;
+    std::cout << "Min.: " << s2.minimum << std::endl;
+    std::cout << "25 p.: " << s2.twenty_fifth << std::endl;
+    std::cout << "Med.: " << s2.median << std::endl;
+    std::cout << "75 p.: " << s2.seventy_fifth << std::endl;
+    std::cout << "Max.: " << s2.maximum << std::endl;
 
     return 0;
 }

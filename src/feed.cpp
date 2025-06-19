@@ -39,12 +39,14 @@ void Feed::loadCSV(const std::string &filepath) {
         const auto stod_ = [](std::string &s) { return std::stod(s); };
         const auto stoll_ = [](std::string &s) { return std::stoll(s); };
 
-        if (set_field(ss, c.open, stod_) && set_field(ss, c.high, stod_) &&
-            set_field(ss, c.low, stod_) && set_field(ss, c.close, stod_) &&
-            set_field(ss, c.volume, stoll_)) {
-            data_.push_back(c);
-        } else {
-            continue;
+        const bool candle_set_successfully =
+            (set_field(ss, c.open, stod_) && set_field(ss, c.high, stod_) &&
+             set_field(ss, c.low, stod_) && set_field(ss, c.close, stod_) &&
+             set_field(ss, c.volume, stoll_));
+
+        if (candle_set_successfully) {
+            c.pivot_point = (c.high + c.low + c.close) / 3.0;
+            data_.emplace_back(std::move(c));
         }
     }
 }

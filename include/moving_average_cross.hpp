@@ -8,13 +8,13 @@
 #include <numeric>
 #include <vector>
 
-template <IsBrokerPtr BrokerPtr>
+template <IsBroker Broker>
 class MovingAverageCross {
   public:
-    MovingAverageCross(BrokerPtr broker, uint32_t short_period,
+    MovingAverageCross(Broker &&broker, uint32_t short_period,
                        uint32_t long_period)
         : broker_(std::move(broker)), short_period_(short_period),
-          long_period_(long_period) {
+          long_period_(long_period), buy_in_(broker_.get_cash()) {
     }
 
     void on_candle(const Candle &candle) {
@@ -33,14 +33,20 @@ class MovingAverageCross {
         double long_ma = recent_long_average();
 
         if (!position_open_ && short_ma > long_ma) {
-            broker_->buy(candle);
+            broker_.buy(candle);
             position_open_ = true;
         }
 
         if (position_open_ && short_ma < long_ma) {
-            broker_->sell(candle);
+            broker_.sell(candle);
             position_open_ = false;
         }
+    }
+
+    double profits() const {
+        return (broker_.get_cash() +
+                closes_[closes_.size() - 1] * broker_.get_position()) -
+               buy_in_;
     }
 
   private:
@@ -52,7 +58,9 @@ class MovingAverageCross {
     uint64_t short_moving_sum_ = 0;
 
     std::vector<double> closes_;
-    const BrokerPtr broker_;
+    Broker broker_;
+
+    const double buy_in_;
 
     double recent_moving_sum(uint32_t period) {
         std::vector<double>::iterator end = closes_.end();

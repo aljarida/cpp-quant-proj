@@ -8,6 +8,7 @@
 template <typename Strategy>
 concept IsStrategy = requires(Strategy s, const Candle &c) {
     { s.on_candle(c) } -> std::same_as<void>;
+    { s.profits() } -> std::same_as<double>;
 };
 
 template <typename StrategyPtr>
