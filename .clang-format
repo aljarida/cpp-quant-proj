@@ -4,3 +4,4 @@ ColumnLimit: 80
 BreakBeforeBraces: Attach
 AllowShortFunctionsOnASingleLine: None
 BreakTemplateDeclarations: Yes
+PointerAlignment: Left

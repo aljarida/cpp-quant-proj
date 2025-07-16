@@ -7,15 +7,6 @@ from enums import DownloadStatus, SAVE_DIR, NYSE_PATH, US_NASDAQ_PATH
 
 DEBUG: bool = False
 
-
-
-def tickers_with_csvs(directory: str) -> set[str]:
-    return {
-        os.path.splitext(filename)[0]
-        for filename in os.listdir(directory)
-        if filename.endswith('.csv') and os.path.isfile(os.path.join(directory, filename))
-    }
-
 def fetch_daily_stock_data(ticker_symbol: str, save_dir: str) -> DownloadStatus:
     os.makedirs(save_dir, exist_ok=True)
     filepath = os.path.join(save_dir, f"{ticker_symbol}.csv")
@@ -103,13 +94,5 @@ def extract_tickers_from_csvs(*file_paths: str) -> list[str]:
 
 if __name__ == "__main__":
     print(f"Downloading data for tickers...")
-
-    all_tickers: list[str] = extract_tickers_from_csvs(NYSE_PATH, US_NASDAQ_PATH)
-
-    if DEBUG: # Only download a subset of all the tickers.
-        tickers_to_grab = all_tickers[:10]
-    else:
-        already_downloaded: set[str] = tickers_with_csvs(SAVE_DIR)
-        tickers_to_grab = [t for t in all_tickers if t not in already_downloaded] 
-    
-    download_all_tickers(tickers_to_grab)
+    tickers: list[str] = extract_tickers_from_csvs(NYSE_PATH, US_NASDAQ_PATH)
+    download_all_tickers(tickers)

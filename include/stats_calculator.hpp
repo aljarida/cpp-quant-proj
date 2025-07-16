@@ -16,5 +16,6 @@ class StatsCalculator {
     double sum() const;
     double mean(const double sum) const;
     double standard_deviation(const double mean) const;
-    std::tuple<double, double, double, double, double> min_25th_med_75th_max();
+    std::tuple<double, double, double, double, double, double, double>
+    min_max_and_percentiles();
 };

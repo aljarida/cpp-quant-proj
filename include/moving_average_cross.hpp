@@ -11,19 +11,19 @@
 template <IsBroker Broker>
 class MovingAverageCross {
   public:
-    MovingAverageCross(Broker &&broker, uint32_t short_period,
+    MovingAverageCross(Broker&& broker, uint32_t short_period,
                        uint32_t long_period)
         : broker_(std::move(broker)), short_period_(short_period),
           long_period_(long_period), buy_in_(broker_.get_cash()) {
     }
 
-    void on_candle(const Candle &candle) {
-        closes_.push_back(candle.close);
-        if (closes_.size() < long_period_) [[unlikely]] {
+    void on_candle(const Candle& candle) {
+        prices_.push_back(candle.close);
+        if (prices_.size() < long_period_) [[unlikely]] {
             return;
         }
 
-        if (closes_.size() == long_period_) [[unlikely]] {
+        if (prices_.size() == long_period_) [[unlikely]] {
             initialize_moving_sums();
         } else [[likely]] {
             update_moving_sums();
@@ -44,8 +44,7 @@ class MovingAverageCross {
     }
 
     double profits() const {
-        return (broker_.get_cash() +
-                closes_[closes_.size() - 1] * broker_.get_position()) -
+        return (broker_.get_cash() + prices_.back() * broker_.get_position()) -
                buy_in_;
     }
 
@@ -57,13 +56,13 @@ class MovingAverageCross {
     uint64_t long_moving_sum_ = 0;
     uint64_t short_moving_sum_ = 0;
 
-    std::vector<double> closes_;
+    std::vector<double> prices_;
     Broker broker_;
 
     const double buy_in_;
 
     double recent_moving_sum(uint32_t period) {
-        std::vector<double>::iterator end = closes_.end();
+        std::vector<double>::iterator end = prices_.end();
         std::vector<double>::iterator begin = end - period;
         return std::accumulate(begin, end, 0.0);
     }
@@ -74,18 +73,17 @@ class MovingAverageCross {
     }
 
     void update_moving_sums() {
-        const size_t first_long_period_elem_idx = closes_.size() - long_period_;
+        const size_t first_long_period_elem_idx = prices_.size() - long_period_;
         const size_t first_short_period_elem_idx =
-            closes_.size() - short_period_;
-        const size_t lastest_elem_idx = closes_.size() - 1;
+            prices_.size() - short_period_;
 
-        assert(first_long_period_elem_idx > 0 and
+        assert(first_long_period_elem_idx > 0 &&
                first_short_period_elem_idx > 0);
 
         long_moving_sum_ +=
-            closes_[lastest_elem_idx] - closes_[first_long_period_elem_idx];
+            prices_.back() - prices_[first_long_period_elem_idx];
         short_moving_sum_ +=
-            closes_[lastest_elem_idx] - closes_[first_short_period_elem_idx];
+            prices_.back() - prices_[first_short_period_elem_idx];
     }
 
     double recent_long_average() const {

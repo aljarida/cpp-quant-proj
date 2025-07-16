@@ -7,6 +7,8 @@ struct Stats {
     double minimum = 0.0;
     double median = 0.0;
     double maximum = 0.0;
+    double tenth = 0.0;
     double twenty_fifth = 0.0;
     double seventy_fifth = 0.0;
+    double ninetieth = 0.0;
 };

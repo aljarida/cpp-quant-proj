@@ -9,7 +9,7 @@
 template <IsStrategy Strategy>
 class Backtester {
   public:
-    Backtester(Strategy &&strategy, Feed &&feed)
+    Backtester(Strategy&& strategy, Feed&& feed)
         : strategy_(std::move(strategy)), feed_(std::move(feed)) {
     }
 

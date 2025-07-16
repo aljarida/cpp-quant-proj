@@ -21,8 +21,8 @@ Stats StatsCalculator::compute_all_stats() {
     s.sum = sum();
     s.mean = mean(s.sum);
     s.standard_deviation = standard_deviation(s.mean);
-    std::tie(s.minimum, s.twenty_fifth, s.median, s.seventy_fifth, s.maximum) =
-        min_25th_med_75th_max();
+    std::tie(s.minimum, s.tenth, s.twenty_fifth, s.median, s.seventy_fifth,
+             s.ninetieth, s.maximum) = min_max_and_percentiles();
 
     return s;
 }
@@ -53,10 +53,10 @@ double StatsCalculator::standard_deviation(const double mean) const {
     return std::sqrt(rss / values_.size());
 }
 
-std::tuple<double, double, double, double, double>
-StatsCalculator::min_25th_med_75th_max() {
+std::tuple<double, double, double, double, double, double, double>
+StatsCalculator::min_max_and_percentiles() {
     if (values_.empty())
-        return {0.0, 0.0, 0.0, 0.0, 0.0};
+        return {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     std::sort(values_.begin(), values_.end());
     const double min = values_.front();
@@ -71,9 +71,11 @@ StatsCalculator::min_25th_med_75th_max() {
         return values_[x] + x_mod_1 * (values_[ceil_x] - values_[floor_x]);
     };
 
+    const double tenth = get_percentile(0.1);
     const double twenty_fifth = get_percentile(0.25);
     const double median = get_percentile(0.5);
     const double seventy_fifth = get_percentile(0.75);
+    const double ninetieth = get_percentile(0.9);
 
-    return {min, twenty_fifth, median, seventy_fifth, max};
+    return {min, tenth, twenty_fifth, median, seventy_fifth, ninetieth, max};
 }
